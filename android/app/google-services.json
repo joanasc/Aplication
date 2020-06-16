@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "742681203745",
+    "firebase_url": "https://berlop-724e4.firebaseio.com",
+    "project_id": "berlop-724e4",
+    "storage_bucket": "berlop-724e4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:742681203745:android:0cda7c1d9c4858d29c3f60",
+        "android_client_info": {
+          "package_name": "com.jimena.BerlopAdministrador"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "742681203745-72ukamq4jgta1nppmf89ku56ekvee80d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMd8GL0sA8UPVZH4IQaFj7h6Gjqs9-ySc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "742681203745-72ukamq4jgta1nppmf89ku56ekvee80d.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
