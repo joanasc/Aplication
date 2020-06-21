@@ -1,6 +1,7 @@
 import 'package:BerlopAdministrador/productos/ProductosSM/model/product.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+
 //para las imaganes
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -12,7 +13,9 @@ String filename;
 
 class ProductScreen extends StatefulWidget {
   final Product product;
+
   ProductScreen(this.product);
+
   @override
   _ProductScreenState createState() => _ProductScreenState();
 }
@@ -20,7 +23,6 @@ class ProductScreen extends StatefulWidget {
 final productReference = FirebaseDatabase.instance.reference().child('product');
 
 class _ProductScreenState extends State<ProductScreen> {
-
   List<Product> items;
 
   TextEditingController _nameController;
@@ -28,9 +30,12 @@ class _ProductScreenState extends State<ProductScreen> {
   TextEditingController _descriptionController;
   TextEditingController _priceController;
   TextEditingController _stockController;
-  
-   //nuevo imagen
+
+  //nuevo imagen
   String productImage;
+
+  ///Path of newly uploaded image
+  var uploadedImagePath;
 
   pickerCam() async {
     File img = await ImagePicker.pickImage(source: ImageSource.camera);
@@ -49,7 +54,7 @@ class _ProductScreenState extends State<ProductScreen> {
       setState(() {});
     }
   }
-  
+
   Widget divider() {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
@@ -59,14 +64,17 @@ class _ProductScreenState extends State<ProductScreen> {
       ),
     );
   }
+
   //fin nuevo imagen
 
   @override
   void initState() {
     super.initState();
     _nameController = new TextEditingController(text: widget.product.name);
-    _codebarController = new TextEditingController(text: widget.product.codebar);
-    _descriptionController = new TextEditingController(text: widget.product.description);
+    _codebarController =
+        new TextEditingController(text: widget.product.codebar);
+    _descriptionController =
+        new TextEditingController(text: widget.product.description);
     _priceController = new TextEditingController(text: widget.product.price);
     _stockController = new TextEditingController(text: widget.product.stock);
     productImage = widget.product.productImage;
@@ -82,9 +90,7 @@ class _ProductScreenState extends State<ProductScreen> {
         centerTitle: true,
         backgroundColor: Colors.blueAccent,
       ),
-
       body: SingleChildScrollView(
-       
         //height: 570.0,
         padding: const EdgeInsets.all(20.0),
         child: Card(
@@ -99,7 +105,7 @@ class _ProductScreenState extends State<ProductScreen> {
                       decoration: new BoxDecoration(
                           border: new Border.all(color: Colors.blueAccent)),
                       padding: new EdgeInsets.all(5.0),
-                      child: image == null ? Text('Añadir') : Image.file(image),                      
+                      child: image == null ? Text('Añadir') : Image.file(image),
                     ),
                     Padding(
                       padding: const EdgeInsets.only(left: 2.2),
@@ -109,7 +115,9 @@ class _ProductScreenState extends State<ProductScreen> {
                         decoration: new BoxDecoration(
                             border: new Border.all(color: Colors.blueAccent)),
                         padding: new EdgeInsets.all(5.0),
-                        child: productImage == '' ? Text('Editar') : Image.network(productImage+'?alt=media'),
+                        child: productImage == null
+                            ? Text('Editar')
+                            : Image.network(productImage),
                       ),
                     ),
                     Divider(),
@@ -123,10 +131,10 @@ class _ProductScreenState extends State<ProductScreen> {
                 ),
                 TextField(
                   controller: _nameController,
-                  style:
-                      TextStyle(fontSize: 17.0, color: Colors.blueAccent),
+                  style: TextStyle(fontSize: 17.0, color: Colors.blueAccent),
                   decoration: InputDecoration(
-                      icon: Icon(Icons.local_laundry_service), labelText: 'Nombre'),
+                      icon: Icon(Icons.local_laundry_service),
+                      labelText: 'Nombre'),
                 ),
                 Padding(
                   padding: EdgeInsets.only(top: 8.0),
@@ -134,10 +142,10 @@ class _ProductScreenState extends State<ProductScreen> {
                 Divider(),
                 TextField(
                   controller: _codebarController,
-                  style:
-                      TextStyle(fontSize: 17.0, color: Colors.blueAccent),
+                  style: TextStyle(fontSize: 17.0, color: Colors.blueAccent),
                   decoration: InputDecoration(
-                      icon: Icon(Icons.check_box_outline_blank), labelText: 'Disponibles'),
+                      icon: Icon(Icons.check_box_outline_blank),
+                      labelText: 'Disponibles'),
                 ),
                 Padding(
                   padding: EdgeInsets.only(top: 8.0),
@@ -145,8 +153,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 Divider(),
                 TextField(
                   controller: _descriptionController,
-                  style:
-                      TextStyle(fontSize: 17.0, color: Colors.blueAccent),
+                  style: TextStyle(fontSize: 17.0, color: Colors.blueAccent),
                   decoration: InputDecoration(
                       icon: Icon(Icons.reorder), labelText: 'Descripción'),
                 ),
@@ -156,8 +163,7 @@ class _ProductScreenState extends State<ProductScreen> {
                 Divider(),
                 TextField(
                   controller: _priceController,
-                  style:
-                      TextStyle(fontSize: 17.0, color: Colors.blueAccent),
+                  style: TextStyle(fontSize: 17.0, color: Colors.blueAccent),
                   decoration: InputDecoration(
                       icon: Icon(Icons.monetization_on), labelText: 'Precio'),
                 ),
@@ -167,73 +173,61 @@ class _ProductScreenState extends State<ProductScreen> {
                 Divider(),
                 TextField(
                   controller: _stockController,
-                  style:
-                      TextStyle(fontSize: 17.0, color: Colors.blueAccent),
+                  style: TextStyle(fontSize: 17.0, color: Colors.blueAccent),
                   decoration: InputDecoration(
-                      icon: Icon(Icons.shopping_basket), labelText: 'Existencias'),
+                      icon: Icon(Icons.shopping_basket),
+                      labelText: 'Existencias'),
                 ),
                 Padding(
                   padding: EdgeInsets.only(top: 1.0),
                 ),
                 Divider(),
                 FlatButton(
-                    onPressed: () {
+                    onPressed: () async {
                       //nuevo imagen
                       if (widget.product.id != null) {
                         var now = formatDate(
                             new DateTime.now(), [yyyy, '-', mm, '-', dd]);
                         var fullImageName =
                             '${_nameController.text}-$now' + '.jpg';
-                        var fullImageName2 =
-                            '${_nameController.text}-$now' + '.jpg';
 
-                        final StorageReference ref =
-                            FirebaseStorage.instance.ref().child(fullImageName);
-                        final StorageUploadTask task = ref.putFile(image);
+                        if (image != null) {
+                          final StorageReference ref = FirebaseStorage.instance
+                              .ref()
+                              .child(fullImageName);
 
-                        var part1 =
-                            'https://firebasestorage.googleapis.com/v0/b/berlop-724e4.appspot.com/o/';//esto cambia segun su firestore
-                            
-                        var fullPathImage = part1 + fullImageName2;
+                          final StorageUploadTask task = ref.putFile(image);
 
-                        productReference.child(widget.product.id).set({
-                          'name': _nameController.text,
-                          'codebar': _codebarController.text,
-                          'description': _descriptionController.text,
-                          'price': _priceController.text,
-                          'stock': _stockController.text,
-                          'ProductImage': '$fullPathImage'
-                        }).then((_) {
-                          Navigator.pop(context);
-                        });
-                      } else {
-                        //nuevo imagen
-                        var now = formatDate(
-                            new DateTime.now(), [yyyy, '-', mm, '-', dd]);
-                        var fullImageName =
-                            '${_nameController.text}-$now' + '.jpg';
-                        var fullImageName2 =
-                            '${_nameController.text}-$now' + '.jpg';
+                          print("Picture uploading...");
 
-                        final StorageReference ref =
-                            FirebaseStorage.instance.ref().child(fullImageName);
-                        final StorageUploadTask task = ref.putFile(image);
+                          task.onComplete.then((value) async{
+                            uploadedImagePath = await value.ref.getDownloadURL();
 
-                        var part1 =
-                            'https://firebasestorage.googleapis.com/v0/b/berlop-724e4.appspot.com/o/'; //esto cambia segun su firestore                           
-                    
-                        var fullPathImage = part1 + fullImageName2;
-
-                        productReference.push().set({
-                          'name': _nameController.text,
-                          'codebar': _codebarController.text,
-                          'description': _descriptionController.text,
-                          'price': _priceController.text,
-                          'stock': _stockController.text,
-                          'ProductImage': '$fullPathImage'//nuevo imagen
-                        }).then((_) {
-                          Navigator.pop(context);
-                        });
+                            print("Picture uploaded successfully");
+                            productReference.push().set({
+                              'name': _nameController.text,
+                              'codebar': _codebarController.text,
+                              'description': _descriptionController.text,
+                              'price': _priceController.text,
+                              'stock': _stockController.text,
+                              'ProductImage': uploadedImagePath //nuevo imagen
+                            }).then((_) {
+                               Navigator.pop(context);
+                              print("Done");
+                            });
+                          });
+                        } else {
+                          productReference.push().set({
+                            'name': _nameController.text,
+                            'codebar': _codebarController.text,
+                            'description': _descriptionController.text,
+                            'price': _priceController.text,
+                            'stock': _stockController.text,
+                            'ProductImage': null //nuevo imagen
+                          }).then((_) {
+                            Navigator.pop(context);
+                          });
+                        }
                       }
                     },
                     child: (widget.product.id != null)
@@ -247,4 +241,3 @@ class _ProductScreenState extends State<ProductScreen> {
     );
   }
 }
-
